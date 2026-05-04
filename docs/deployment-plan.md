@@ -21,7 +21,7 @@ Then add Supabase in this order:
 
 1. Create Supabase project.
 2. Run `docs/supabase-schema.sql`.
-3. Enable Row Level Security policies.
+3. Run `docs/supabase-rls-policies.sql`.
 4. Add login and organization membership.
 5. Replace `localStorage` reads/writes with Supabase queries.
 6. Add server-side AI insight generation.
@@ -29,4 +29,3 @@ Then add Supabase in this order:
 ## Production Data Principle
 
 The browser should never be the source of truth for team data. The browser can cache data, but the authoritative record should live in Supabase/Postgres.
-

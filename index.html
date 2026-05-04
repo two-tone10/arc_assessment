@@ -109,6 +109,31 @@
       min-width: 0;
     }
 
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .status-pill {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      padding: 0.42rem 0.68rem;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.76);
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .status-pill.connected {
+      color: #FDF3E6;
+      border-color: rgba(196, 149, 74, 0.42);
+      background: rgba(196, 149, 74, 0.14);
+    }
+
     .mark {
       width: 42px;
       height: 42px;
@@ -655,6 +680,10 @@
       .topbar {
         display: grid;
       }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
     }
   </style>
 </head>
@@ -668,7 +697,10 @@
           <p class="subtitle">Evaluate how youth programs support agency, role clarity, and challenge.</p>
         </div>
       </div>
-      <button id="seedDemo" class="ghost" type="button">Load demo data</button>
+      <div class="top-actions">
+        <div id="runtimeStatus" class="status-pill">Local prototype mode</div>
+        <button id="seedDemo" class="ghost" type="button">Load demo data</button>
+      </div>
     </div>
   </header>
 
@@ -802,6 +834,10 @@
 
     let state = loadState();
     let charts = {};
+    let runtimeConfig = {
+      storageMode: "local-prototype",
+      aiInsightsEnabled: false
+    };
 
     function loadState() {
       try {
@@ -878,10 +914,35 @@
     function render() {
       document.getElementById("userName").value = state.user.name;
       document.getElementById("userRole").value = state.user.role;
+      renderRuntimeStatus();
       renderPrograms();
       renderAssessment();
       renderResults();
       renderInsights();
+    }
+
+    async function initRuntimeConfig() {
+      try {
+        const response = await fetch("/api/config");
+        if (!response.ok) return;
+        runtimeConfig = await response.json();
+        renderRuntimeStatus();
+      } catch {
+        renderRuntimeStatus();
+      }
+    }
+
+    function renderRuntimeStatus() {
+      const badge = document.getElementById("runtimeStatus");
+      if (!badge) return;
+      const connected = runtimeConfig.storageMode === "supabase-ready";
+      badge.classList.toggle("connected", connected);
+      badge.textContent = connected
+        ? "Shared database ready"
+        : "Local prototype mode";
+      badge.title = connected
+        ? "Vercel has Supabase environment variables. The next code step is replacing local storage calls with Supabase reads and writes."
+        : "This deployment is using browser storage. Data is not yet shared across users or devices.";
     }
 
     function renderPrograms() {
@@ -1343,6 +1404,7 @@
       tab.addEventListener("click", () => setView(tab.dataset.view));
     });
 
+    initRuntimeConfig();
     render();
   </script>
 </body>

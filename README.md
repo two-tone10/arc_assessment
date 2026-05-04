@@ -34,9 +34,10 @@ The current app can deploy without environment variables. When Supabase is added
 - `SUPABASE_ANON_KEY`
 - `OPENAI_API_KEY` only when AI generation is ready
 
+See `docs/supabase-vercel-setup.md` for the backend setup sequence.
+
 ## Current Storage Mode
 
 Right now, programs and responses are stored in browser `localStorage`. That means the prototype is useful for design review and local demos, but it is not yet a shared team repository.
 
 For a real pilot, connect Supabase so data is shared by organization, program, role, and assessment cycle.
-
