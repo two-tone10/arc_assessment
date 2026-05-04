@@ -1,0 +1,1349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ARC Purpose Development Assessment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --ink: #2A1A12;
+      --muted: #5A4A3A;
+      --quiet: #8A7A6A;
+      --line: #E8E2D8;
+      --paper: #FAF8F4;
+      --panel: #FFFFFF;
+      --panel-warm: #FFFDF9;
+      --agency: #5A7A52;
+      --agency-soft: #EAF0E8;
+      --role: #2E5A7A;
+      --role-soft: #E5EFF6;
+      --challenge: #C4954A;
+      --challenge-soft: #FDF3E6;
+      --accent: #7A2840;
+      --accent-dark: #5A1E30;
+      --charcoal: #3B1F2B;
+      --charcoal-dark: #2A1520;
+      --soft: #F0EBE4;
+      --danger: #B85050;
+      font-family: "Source Sans 3", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--charcoal-dark);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 6%, rgba(196, 149, 74, 0.22), transparent 23rem),
+        radial-gradient(circle at 88% 18%, rgba(122, 40, 64, 0.45), transparent 28rem),
+        linear-gradient(160deg, var(--charcoal-dark) 0%, var(--charcoal) 48%, #25121C 100%);
+      background-attachment: fixed;
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 0.72rem 0.95rem;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+      box-shadow: 0 8px 18px rgba(42, 21, 32, 0.18);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 11px 24px rgba(42, 21, 32, 0.24);
+    }
+
+    button:active { transform: translateY(0); }
+
+    button.secondary {
+      background: var(--soft);
+      color: var(--ink);
+    }
+
+    button.ghost {
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--accent);
+      border: 1px solid var(--line);
+    }
+
+    button:disabled {
+      opacity: 0.52;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    header {
+      padding: 1rem clamp(1rem, 3vw, 2.5rem);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(42, 21, 32, 0.78);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--charcoal), var(--accent));
+      color: white;
+      font-weight: 900;
+      letter-spacing: 0;
+      flex: 0 0 auto;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1, h2, h3 {
+      font-family: "Libre Baskerville", Georgia, serif;
+      font-weight: 700;
+      color: var(--charcoal);
+    }
+
+    header h1 { color: rgba(255, 255, 255, 0.94); }
+    header .subtitle { color: rgba(255, 255, 255, 0.52); }
+
+    h1 {
+      font-size: clamp(1.05rem, 2vw, 1.35rem);
+      margin-bottom: 0.1rem;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      color: var(--quiet);
+      font-size: 0.92rem;
+      margin: 0;
+    }
+
+    main {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 1.2rem clamp(1rem, 3vw, 2.5rem) 2.4rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 350px) minmax(0, 1fr);
+      gap: 1.15rem;
+      align-items: start;
+    }
+
+    .panel, .card {
+      background: var(--panel-warm);
+      border: 1px solid rgba(232, 226, 216, 0.95);
+      border-radius: 8px;
+      box-shadow: 0 18px 46px rgba(10, 5, 8, 0.2);
+    }
+
+    .panel {
+      padding: 1.05rem;
+    }
+
+    .stack { display: grid; gap: 1rem; }
+    .tight { display: grid; gap: 0.55rem; }
+
+    label {
+      display: block;
+      font-weight: 750;
+      font-size: 0.88rem;
+      margin-bottom: 0.32rem;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0.72rem;
+      background: white;
+      color: var(--ink);
+      transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    }
+
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: 0;
+      border-color: var(--challenge);
+      box-shadow: 0 0 0 3px rgba(196, 149, 74, 0.16);
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .row {
+      display: flex;
+      gap: 0.65rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.35rem;
+      padding: 0.28rem;
+      background: rgba(255, 255, 255, 0.09);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    .tab {
+      color: rgba(255, 255, 255, 0.72);
+      background: transparent;
+      white-space: nowrap;
+      padding: 0.62rem 0.82rem;
+      box-shadow: none;
+    }
+
+    .tab.active {
+      background: var(--panel-warm);
+      color: var(--accent);
+      box-shadow: 0 8px 22px rgba(10, 5, 8, 0.2);
+    }
+
+    .program-list {
+      display: grid;
+      gap: 0.55rem;
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 0.2rem;
+    }
+
+    .program-btn {
+      background: white;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      text-align: left;
+      font-weight: 650;
+      box-shadow: none;
+    }
+
+    .program-btn.active {
+      border-color: var(--accent);
+      box-shadow: inset 4px 0 0 var(--accent);
+      background: linear-gradient(90deg, var(--accent) 0 4px, #FFFFFF 4px);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.6fr);
+      gap: 1rem;
+      align-items: stretch;
+      margin-bottom: 1.15rem;
+    }
+
+    .hero-main {
+      border-radius: 8px;
+      padding: clamp(1.2rem, 3vw, 2rem);
+      color: white;
+      background:
+        linear-gradient(135deg, rgba(122, 40, 64, 0.96), rgba(59, 31, 43, 0.94)),
+        var(--accent);
+      min-height: 210px;
+      display: grid;
+      align-content: end;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero-main::after {
+      content: "";
+      position: absolute;
+      right: -3rem;
+      bottom: -4rem;
+      width: 18rem;
+      height: 18rem;
+      border: 1.4rem solid rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+    }
+
+    .hero-main h2 {
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 0.95;
+      margin-bottom: 0.8rem;
+      max-width: 760px;
+      color: white;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-main p {
+      color: rgba(255, 255, 255, 0.84);
+      max-width: 680px;
+      line-height: 1.5;
+      margin-bottom: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .flow-card {
+      background: rgba(255, 253, 249, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0.95rem;
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      gap: 0.75rem;
+      align-items: start;
+      box-shadow: 0 14px 36px rgba(10, 5, 8, 0.18);
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .flow-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 42px rgba(10, 5, 8, 0.24);
+    }
+
+    .step-number {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--challenge-soft);
+      color: #7A5A2E;
+      font-weight: 900;
+    }
+
+    .flow-card strong {
+      display: block;
+      margin-bottom: 0.12rem;
+    }
+
+    .flow-card span {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .source-note {
+      background: #FFFDF9;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--challenge);
+      border-radius: 8px;
+      padding: 0.9rem;
+    }
+
+    .source-note strong {
+      display: block;
+      margin-bottom: 0.22rem;
+    }
+
+    .source-note p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+      font-size: 0.88rem;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.76rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+
+    .dimension-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 0.35rem;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 0.28rem 0.58rem;
+      background: var(--soft);
+      color: var(--accent);
+      font-size: 0.76rem;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .meta {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-top: 0.18rem;
+    }
+
+    .assessment-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .dimension {
+      border-top: 4px solid var(--agency);
+      padding: 1rem;
+      background:
+        linear-gradient(180deg, rgba(240, 235, 228, 0.76), rgba(255, 253, 249, 1) 8rem),
+        var(--panel-warm);
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .dimension:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 52px rgba(10, 5, 8, 0.22);
+    }
+
+    .dimension.role { border-top-color: var(--role); }
+    .dimension.challenge { border-top-color: var(--challenge); }
+
+    .question {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 4.2rem;
+      gap: 0.8rem;
+      align-items: center;
+      padding: 0.72rem 0;
+      border-bottom: 1px solid var(--soft);
+      border-radius: 7px;
+      transition: background 0.16s ease;
+    }
+
+    .question:hover {
+      background: rgba(196, 149, 74, 0.07);
+    }
+
+    .question:last-of-type { border-bottom: 0; }
+
+    .question p {
+      margin: 0 0 0.45rem;
+      line-height: 1.35;
+    }
+
+    .scale-labels {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 0.55rem;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--agency), var(--role), var(--challenge));
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--accent);
+      margin-top: -0.35rem;
+      box-shadow: 0 3px 10px rgba(42, 21, 32, 0.28);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 0.55rem;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--agency), var(--role), var(--challenge));
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 1.05rem;
+      height: 1.05rem;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--accent);
+      box-shadow: 0 3px 10px rgba(42, 21, 32, 0.28);
+    }
+
+    .score-pill {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      text-align: center;
+      padding: 0.4rem 0.25rem;
+      font-weight: 850;
+      background: var(--charcoal);
+      color: white;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .chart-card {
+      min-height: 330px;
+      padding: 1rem;
+    }
+
+    .chart-card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .chart-box {
+      position: relative;
+      height: 260px;
+    }
+
+    .chart-card.wide .chart-box {
+      height: 310px;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .kpi {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 8px;
+      padding: 0.8rem;
+      box-shadow: inset 0 -3px 0 rgba(196, 149, 74, 0.18);
+    }
+
+    .kpi strong {
+      display: block;
+      font-size: 1.8rem;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .kpi span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .insights {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .insight {
+      padding: 1rem;
+      border-left: 4px solid var(--accent);
+      background: var(--panel-warm);
+      border-radius: 8px;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .insight h3, .chart-card h3, .dimension h3 {
+      margin-bottom: 0.35rem;
+      font-size: 1rem;
+    }
+
+    .insight p, .chart-card p, .empty p {
+      color: var(--muted);
+      line-height: 1.45;
+      margin-bottom: 0;
+    }
+
+    .notice {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 1rem;
+      color: var(--muted);
+      background: #FFFDF9;
+    }
+
+    .hidden { display: none !important; }
+
+    .role-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .role-table th, .role-table td {
+      border-bottom: 1px solid var(--soft);
+      padding: 0.65rem 0.5rem;
+      text-align: left;
+    }
+
+    .role-table th {
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .empty {
+      padding: 2rem;
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    @media (max-width: 860px) {
+      .grid, .chart-grid, .insights, .kpis, .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .assessment-header {
+        display: grid;
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      header { position: static; }
+
+      .question {
+        grid-template-columns: 1fr;
+      }
+
+      .score-pill {
+        width: 4.2rem;
+      }
+
+      .topbar {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">ARC</div>
+        <div>
+          <h1>Purpose Development Assessment</h1>
+          <p class="subtitle">Evaluate how youth programs support agency, role clarity, and challenge.</p>
+        </div>
+      </div>
+      <button id="seedDemo" class="ghost" type="button">Load demo data</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-main">
+        <h2>Rate the conditions for purpose to grow.</h2>
+        <p>Practitioners select a shared youth program, submit their own ARC ratings, and compare aggregate patterns across roles to decide what to optimize next.</p>
+      </div>
+      <div class="hero-side">
+        <div class="flow-card">
+          <div class="step-number">1</div>
+          <div><strong>Choose a shared program</strong><span>One program record is visible to everyone in the prototype network.</span></div>
+        </div>
+        <div class="flow-card">
+          <div class="step-number">2</div>
+          <div><strong>Rate that program</strong><span>Each adult answers the 12 ARC items and adds context for interpretation.</span></div>
+        </div>
+        <div class="flow-card">
+          <div class="step-number">3</div>
+          <div><strong>Review the aggregate</strong><span>Charts and insights summarize responses for the selected program.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <aside class="stack">
+        <section class="panel">
+          <h2>Your Access</h2>
+          <p class="subtitle" style="margin-bottom:0.85rem;">Your role is attached to each program rating so the dashboard can compare perspectives.</p>
+          <div class="tight">
+            <div>
+              <label for="userName">Name</label>
+              <input id="userName" type="text" placeholder="e.g., Maya Johnson">
+            </div>
+            <div>
+              <label for="userRole">Role</label>
+              <select id="userRole">
+                <option>Program Director</option>
+                <option>Program Staff</option>
+                <option>Youth Counselor</option>
+                <option>Peer Mentor</option>
+                <option>Teacher</option>
+              </select>
+            </div>
+            <button id="saveUser" type="button">Register / log in</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Programs in Network</h2>
+          <p class="subtitle" style="margin-bottom:0.85rem;">Select the program you want to evaluate. The assessment questions on the right always refer to this selected program.</p>
+          <div class="tight">
+            <div>
+              <label for="programName">Create program</label>
+              <input id="programName" type="text" placeholder="e.g., Summer Bridge Project">
+            </div>
+            <button id="createProgram" type="button">Create shared program</button>
+          </div>
+          <hr style="border:0;border-top:1px solid var(--line);margin:1rem 0;">
+          <div id="programList" class="program-list"></div>
+        </section>
+
+        <section class="source-note">
+          <strong>Prototype data source</strong>
+          <p>This mockup currently stores programs and responses in this browser only, using local storage. In the production version, this would connect to an organization-level database so colleagues in the same network see the same programs and aggregate results.</p>
+        </section>
+      </aside>
+
+      <section class="stack">
+        <div class="tabs" aria-label="Assessment sections">
+          <button class="tab active" type="button" data-view="assess">Assessment</button>
+          <button class="tab" type="button" data-view="results">Results Dashboard</button>
+          <button class="tab" type="button" data-view="insights">AI Insights</button>
+        </div>
+
+        <section id="assessView" class="stack"></section>
+        <section id="resultsView" class="stack hidden"></section>
+        <section id="insightsView" class="stack hidden"></section>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "arcPurposeAssessment.v1";
+    const dimensions = [
+      {
+        key: "agency",
+        label: "Agency",
+        color: "#5A7A52",
+        definition: "A young person's sense of control, authorship, and meaningful choice within the experience.",
+        questions: [
+          "Youth have meaningful choices about how they participate or contribute.",
+          "Youth can influence decisions that shape the project or program experience.",
+          "Youth are trusted to take initiative rather than only follow adult instructions.",
+          "Youth can see how their actions make a difference in the environment around them."
+        ]
+      },
+      {
+        key: "role",
+        label: "Role Clarity",
+        color: "#2E5A7A",
+        definition: "A sense of identity, belonging, and knowing how one's contribution matters to the group.",
+        questions: [
+          "Youth understand what role they play in the program or project.",
+          "Youth feel that their identity, background, or strengths are welcomed.",
+          "Youth can describe how their contribution supports others or the larger goal.",
+          "Youth experience a clear sense of belonging with peers, adults, or the program community."
+        ]
+      },
+      {
+        key: "challenge",
+        label: "Challenge",
+        color: "#C4954A",
+        definition: "A task or experience that requires persistence and growth without becoming overwhelming.",
+        questions: [
+          "Youth are asked to work toward goals that require sustained effort.",
+          "The experience includes manageable difficulty rather than tasks that are too easy or too taxing.",
+          "Youth receive enough support to persist when the work becomes difficult.",
+          "The challenge feels connected to something youth see as meaningful or worth doing."
+        ]
+      }
+    ];
+
+    const defaultState = {
+      user: { name: "", role: "Program Director" },
+      activeProgramId: "",
+      programs: [],
+      responses: []
+    };
+
+    let state = loadState();
+    let charts = {};
+
+    function loadState() {
+      try {
+        return { ...defaultState, ...JSON.parse(localStorage.getItem(STORAGE_KEY)) };
+      } catch {
+        return structuredClone(defaultState);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function uid(prefix) {
+      return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    }
+
+    function activeProgram() {
+      return state.programs.find((program) => program.id === state.activeProgramId);
+    }
+
+    function responsesFor(programId = state.activeProgramId) {
+      return state.responses.filter((response) => response.programId === programId);
+    }
+
+    function currentUserResponse() {
+      const name = state.user.name.trim().toLowerCase();
+      return responsesFor().find((response) => response.userName.trim().toLowerCase() === name && response.role === state.user.role);
+    }
+
+    function blankScores() {
+      return Object.fromEntries(dimensions.map((dimension) => [
+        dimension.key,
+        { scores: [50, 50, 50, 50], note: "" }
+      ]));
+    }
+
+    function dimensionAverage(response, key) {
+      const scores = response.answers[key].scores;
+      return Math.round(scores.reduce((sum, score) => sum + Number(score), 0) / scores.length);
+    }
+
+    function programAverages(responses) {
+      return Object.fromEntries(dimensions.map((dimension) => {
+        if (!responses.length) return [dimension.key, 0];
+        const value = responses.reduce((sum, response) => sum + dimensionAverage(response, dimension.key), 0) / responses.length;
+        return [dimension.key, Math.round(value)];
+      }));
+    }
+
+    function questionAverages(responses) {
+      return dimensions.flatMap((dimension) => dimension.questions.map((question, index) => {
+        const value = responses.length
+          ? responses.reduce((sum, response) => sum + Number(response.answers[dimension.key].scores[index]), 0) / responses.length
+          : 0;
+        return {
+          label: `${dimension.label} ${index + 1}`,
+          full: question,
+          value: Math.round(value),
+          color: dimension.color
+        };
+      }));
+    }
+
+    function setView(view) {
+      document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.view === view));
+      document.getElementById("assessView").classList.toggle("hidden", view !== "assess");
+      document.getElementById("resultsView").classList.toggle("hidden", view !== "results");
+      document.getElementById("insightsView").classList.toggle("hidden", view !== "insights");
+      if (view === "results") renderResults();
+      if (view === "insights") renderInsights();
+    }
+
+    function render() {
+      document.getElementById("userName").value = state.user.name;
+      document.getElementById("userRole").value = state.user.role;
+      renderPrograms();
+      renderAssessment();
+      renderResults();
+      renderInsights();
+    }
+
+    function renderPrograms() {
+      const list = document.getElementById("programList");
+      if (!state.programs.length) {
+        list.innerHTML = `<div class="notice">Create a program to begin, or load demo data from the header.</div>`;
+        return;
+      }
+
+      list.innerHTML = state.programs.map((program) => {
+        const count = responsesFor(program.id).length;
+        const activeClass = program.id === state.activeProgramId ? " active" : "";
+        return `<button class="program-btn${activeClass}" type="button" data-program="${program.id}">
+          ${escapeHtml(program.name)}
+          <span class="meta">${count} response${count === 1 ? "" : "s"} in the network</span>
+        </button>`;
+      }).join("");
+
+      list.querySelectorAll("[data-program]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.activeProgramId = button.dataset.program;
+          saveState();
+          render();
+        });
+      });
+    }
+
+    function renderAssessment() {
+      const view = document.getElementById("assessView");
+      const program = activeProgram();
+      if (!program) {
+        view.innerHTML = `<div class="empty"><h2>Select or create a program</h2><p>Assessments are attached to a shared program so colleagues can evaluate the same youth experience.</p></div>`;
+        return;
+      }
+
+      const response = currentUserResponse() || {
+        id: "",
+        programId: program.id,
+        userName: state.user.name,
+        role: state.user.role,
+        answers: blankScores()
+      };
+
+      view.innerHTML = `
+        <div class="panel">
+          <div class="assessment-header">
+            <div>
+              <div class="eyebrow">Individual program rating</div>
+              <h2>${escapeHtml(program.name)}</h2>
+              <p class="subtitle">${state.user.name ? `You are rating this selected program as ${escapeHtml(state.user.name)} · ${escapeHtml(state.user.role)}.` : "Register or log in before submitting your assessment."}</p>
+            </div>
+            <button id="submitAssessment" type="button" ${state.user.name.trim() ? "" : "disabled"}>Save assessment</button>
+          </div>
+          <div class="source-note" style="margin-bottom:1rem;">
+            <strong>Where individuals rate each program</strong>
+            <p>This is the individual rating screen. Each adult selects a program in the left panel, answers these ARC questions for that specific program, and saves one response tied to their role.</p>
+          </div>
+          <div class="stack">
+            ${dimensions.map((dimension) => renderDimension(dimension, response)).join("")}
+          </div>
+        </div>
+      `;
+
+      view.querySelectorAll("input[type='range']").forEach((input) => {
+        input.addEventListener("input", () => {
+          view.querySelector(`[data-score-display="${input.name}"]`).textContent = input.value;
+        });
+      });
+
+      document.getElementById("submitAssessment").addEventListener("click", () => saveAssessment(program.id));
+    }
+
+    function renderDimension(dimension, response) {
+      return `
+        <article class="card dimension ${dimension.key === "role" ? "role" : dimension.key}">
+          <div class="dimension-head">
+            <div>
+              <h3>${dimension.label}</h3>
+              <p class="subtitle">${dimension.definition}</p>
+            </div>
+            <span class="chip">4 slider items</span>
+          </div>
+          ${dimension.questions.map((question, index) => {
+            const name = `${dimension.key}_${index}`;
+            const value = response.answers[dimension.key].scores[index];
+            return `
+              <div class="question">
+                <div>
+                  <p>${question}</p>
+                  <input type="range" min="0" max="100" value="${value}" name="${name}" aria-label="${question}">
+                  <div class="scale-labels"><span>Not at all</span><span>Extremely</span></div>
+                </div>
+                <div class="score-pill" data-score-display="${name}">${value}</div>
+              </div>`;
+          }).join("")}
+          <div style="margin-top:0.9rem;">
+            <label for="${dimension.key}_note">Additional context or considerations</label>
+            <textarea id="${dimension.key}_note" placeholder="What should colleagues know when interpreting these ${dimension.label.toLowerCase()} ratings?">${escapeHtml(response.answers[dimension.key].note)}</textarea>
+          </div>
+        </article>
+      `;
+    }
+
+    function saveAssessment(programId) {
+      if (!state.user.name.trim()) return;
+      const answers = blankScores();
+      dimensions.forEach((dimension) => {
+        answers[dimension.key].scores = dimension.questions.map((_, index) => Number(document.querySelector(`[name="${dimension.key}_${index}"]`).value));
+        answers[dimension.key].note = document.getElementById(`${dimension.key}_note`).value.trim();
+      });
+
+      const existing = currentUserResponse();
+      if (existing) {
+        existing.answers = answers;
+        existing.updatedAt = new Date().toISOString();
+      } else {
+        state.responses.push({
+          id: uid("response"),
+          programId,
+          userName: state.user.name.trim(),
+          role: state.user.role,
+          answers,
+          updatedAt: new Date().toISOString()
+        });
+      }
+      saveState();
+      render();
+      setView("results");
+    }
+
+    function renderResults() {
+      const view = document.getElementById("resultsView");
+      const program = activeProgram();
+      if (!program) {
+        view.innerHTML = `<div class="empty"><h2>No program selected</h2><p>Select a program to view aggregate ARC results.</p></div>`;
+        destroyCharts();
+        return;
+      }
+
+      const responses = responsesFor();
+      if (!responses.length) {
+        view.innerHTML = `<div class="empty"><h2>No assessments yet</h2><p>Save the first response for ${escapeHtml(program.name)} to generate charts.</p></div>`;
+        destroyCharts();
+        return;
+      }
+
+      const averages = programAverages(responses);
+      const roleCount = new Set(responses.map((response) => response.role)).size;
+
+      view.innerHTML = `
+        <section class="panel">
+          <div class="eyebrow">Aggregate repository view</div>
+          <h2>${escapeHtml(program.name)} Results</h2>
+          <div class="kpis">
+            ${dimensions.map((dimension) => `<div class="kpi"><strong style="color:${dimension.color}">${averages[dimension.key]}</strong><span>${dimension.label}</span></div>`).join("")}
+          </div>
+          <p class="subtitle">${responses.length} response${responses.length === 1 ? "" : "s"} submitted · ${roleCount} role${roleCount === 1 ? "" : "s"} represented</p>
+          <div class="source-note" style="margin-top:1rem;">
+            <strong>Where these results come from</strong>
+            <p>For this prototype, the repository is the browser's local storage. Every saved response for the selected program is aggregated here. In a deployed tool, this same section would pull from a secure shared database filtered by organization, network, program, and role.</p>
+          </div>
+        </section>
+        <section class="chart-grid">
+          <article class="card chart-card">
+            <h3>ARC Radar Chart</h3>
+            <div class="chart-box"><canvas id="radarChart"></canvas></div>
+          </article>
+          <article class="card chart-card">
+            <h3>Score Distribution</h3>
+            <div class="chart-box"><canvas id="distributionChart"></canvas></div>
+          </article>
+          <article class="card chart-card wide">
+            <h3>Question-Level Bar Chart</h3>
+            <div class="chart-box"><canvas id="questionChart"></canvas></div>
+          </article>
+          <article class="card chart-card wide">
+            <h3>Results by Role</h3>
+            <div id="roleResults"></div>
+          </article>
+        </section>
+      `;
+
+      drawCharts(responses, averages);
+      renderRoleResults(responses, roleCount);
+    }
+
+    function destroyCharts() {
+      Object.values(charts).forEach((chart) => chart.destroy());
+      charts = {};
+    }
+
+    function drawCharts(responses, averages) {
+      destroyCharts();
+      charts.radar = new Chart(document.getElementById("radarChart"), {
+        type: "radar",
+        data: {
+          labels: dimensions.map((dimension) => dimension.label),
+          datasets: [{
+            label: "Program average",
+            data: dimensions.map((dimension) => averages[dimension.key]),
+            borderColor: "#7A2840",
+            backgroundColor: "rgba(122, 40, 64, 0.16)",
+            pointBackgroundColor: dimensions.map((dimension) => dimension.color)
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } },
+          plugins: { legend: { display: false } }
+        }
+      });
+
+      const q = questionAverages(responses);
+      charts.questions = new Chart(document.getElementById("questionChart"), {
+        type: "bar",
+        data: {
+          labels: q.map((item) => item.label),
+          datasets: [{
+            label: "Average score",
+            data: q.map((item) => item.value),
+            backgroundColor: q.map((item) => item.color)
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { min: 0, max: 100 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items) => q[items[0].dataIndex].full,
+                label: (item) => `Average: ${item.raw}`
+              }
+            }
+          }
+        }
+      });
+
+      const buckets = ["0-24", "25-49", "50-74", "75-100"];
+      charts.distribution = new Chart(document.getElementById("distributionChart"), {
+        type: "bar",
+        data: {
+          labels: buckets,
+          datasets: dimensions.map((dimension) => ({
+            label: dimension.label,
+            data: bucketCounts(responses.map((response) => dimensionAverage(response, dimension.key))),
+            backgroundColor: dimension.color
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
+    }
+
+    function bucketCounts(values) {
+      return [
+        values.filter((value) => value <= 24).length,
+        values.filter((value) => value >= 25 && value <= 49).length,
+        values.filter((value) => value >= 50 && value <= 74).length,
+        values.filter((value) => value >= 75).length
+      ];
+    }
+
+    function renderRoleResults(responses, roleCount) {
+      const container = document.getElementById("roleResults");
+      if (roleCount < 2) {
+        container.innerHTML = `<div class="notice">Unlocked when 2 or more different roles have responded.</div>`;
+        return;
+      }
+
+      const roles = [...new Set(responses.map((response) => response.role))];
+      container.innerHTML = `
+        <table class="role-table">
+          <thead>
+            <tr><th>Role</th><th>Responses</th>${dimensions.map((dimension) => `<th>${dimension.label}</th>`).join("")}</tr>
+          </thead>
+          <tbody>
+            ${roles.map((role) => {
+              const roleResponses = responses.filter((response) => response.role === role);
+              const averages = programAverages(roleResponses);
+              return `<tr><td>${role}</td><td>${roleResponses.length}</td>${dimensions.map((dimension) => `<td>${averages[dimension.key]}</td>`).join("")}</tr>`;
+            }).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderInsights() {
+      const view = document.getElementById("insightsView");
+      const program = activeProgram();
+      if (!program) {
+        view.innerHTML = `<div class="empty"><h2>No program selected</h2><p>Select a program to generate ARC insights.</p></div>`;
+        return;
+      }
+
+      const responses = responsesFor();
+      if (!responses.length) {
+        view.innerHTML = `<div class="empty"><h2>No assessment data yet</h2><p>Insights appear after at least one practitioner response is saved.</p></div>`;
+        return;
+      }
+
+      const averages = programAverages(responses);
+      const notes = dimensions.flatMap((dimension) => responses.map((response) => response.answers[dimension.key].note).filter(Boolean));
+      const summary = quantitativeSummary(averages);
+      const themes = qualitativeThemes(notes);
+      const nextSteps = nextStepLogic(averages);
+
+      view.innerHTML = `
+        <section class="panel">
+          <div class="eyebrow">Decision support</div>
+          <h2>AI Insights for ${escapeHtml(program.name)}</h2>
+          <p class="subtitle">Prototype insight engine using transparent ARC pattern rules and qualitative keyword synthesis. A production version could call an AI service against the same shared response repository.</p>
+        </section>
+        <section class="insights">
+          <article class="insight">
+            <h3>Quantitative Summary</h3>
+            <p>${summary}</p>
+          </article>
+          <article class="insight">
+            <h3>Qualitative Themes</h3>
+            <p>${themes}</p>
+          </article>
+          <article class="insight">
+            <h3>Next Steps</h3>
+            <p>${nextSteps}</p>
+          </article>
+        </section>
+      `;
+    }
+
+    function quantitativeSummary(averages) {
+      const sorted = [...dimensions].sort((a, b) => averages[b.key] - averages[a.key]);
+      const high = sorted[0];
+      const low = sorted[sorted.length - 1];
+      const spread = averages[high.key] - averages[low.key];
+      if (spread <= 10) {
+        return `The ARC profile is relatively balanced, with scores clustered between ${averages[low.key]} and ${averages[high.key]}. This suggests the program may already provide a coherent mix of choice, belonging, and productive difficulty.`;
+      }
+      return `${high.label} is the strongest dimension at ${averages[high.key]}, while ${low.label} is the clearest area for tuning at ${averages[low.key]}. The ${spread}-point spread suggests practitioners may want to adjust the experience rather than pursue across-the-board increases.`;
+    }
+
+    function qualitativeThemes(notes) {
+      if (!notes.length) {
+        return "No qualitative context has been entered yet. Invite each role group to add examples, tensions, and student-specific considerations so the numbers do not stand alone.";
+      }
+      const text = notes.join(" ").toLowerCase();
+      const signals = [
+        ["choice and voice", ["choice", "voice", "decision", "control", "ownership"]],
+        ["belonging and identity", ["belong", "identity", "seen", "culture", "strength"]],
+        ["support during challenge", ["support", "persist", "hard", "difficult", "overwhelm"]],
+        ["meaning and contribution", ["meaning", "purpose", "matter", "impact", "contribution"]]
+      ];
+      const found = signals.filter(([, words]) => words.some((word) => text.includes(word))).map(([label]) => label);
+      if (!found.length) {
+        return `Practitioners added ${notes.length} note${notes.length === 1 ? "" : "s"}. The entries appear varied, so a useful next move is to discuss concrete examples behind high and low ratings.`;
+      }
+      return `The open-text entries point most clearly to ${humanList(found)}. Use these themes to ask which youth experience the current ARC balance as helpful, and which youth may need a different mix.`;
+    }
+
+    function nextStepLogic(averages) {
+      const agency = averages.agency;
+      const role = averages.role;
+      const challenge = averages.challenge;
+      if (agency >= 70 && role >= 70 && challenge < 55) {
+        return "Youth may feel trusted and connected, but the work may not yet ask enough of them. Consider adding a meaningful stretch task, public contribution, or multi-step goal while keeping adult support visible.";
+      }
+      if (agency < 55 && role >= 65 && challenge >= 65) {
+        return "The program may offer belonging and demanding work while leaving youth with limited authorship. Add structured choices, youth-led decisions, or moments where students can shape how success is pursued.";
+      }
+      if (role < 55 && agency >= 65) {
+        return "Youth may have autonomy without enough clarity about who they are becoming or how they belong. Make roles, contribution pathways, and group identity more explicit before increasing difficulty.";
+      }
+      if (challenge >= 80 && (agency < 60 || role < 60)) {
+        return "Challenge may be outrunning the supports that make persistence purposeful. Tune the task down or add scaffolds, especially for youth who have not yet developed belonging or control in the setting.";
+      }
+      return "Optimize ARC by choosing one student group and asking what mix they need next: more voice, clearer belonging, or a better-calibrated stretch. Small adjustments are preferable to maximizing every dimension at once.";
+    }
+
+    function humanList(items) {
+      if (items.length === 1) return items[0];
+      if (items.length === 2) return `${items[0]} and ${items[1]}`;
+      return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function seedDemoData() {
+      const programId = uid("program");
+      state.programs.unshift({
+        id: programId,
+        name: "After School Civic Action Lab",
+        createdAt: new Date().toISOString()
+      });
+      state.activeProgramId = programId;
+      state.user = { name: "Maya Johnson", role: "Program Director" };
+      const demo = [
+        ["Maya Johnson", "Program Director", [82, 79, 51], ["Youth choose issues and partners.", "Roles are clear during planning meetings.", "Could add a stronger final deliverable."]],
+        ["Luis Chen", "Program Staff", [74, 72, 48], ["Students have real voice.", "Peer teams feel cohesive.", "Some tasks end too quickly."]],
+        ["Ari Patel", "Youth Counselor", [69, 77, 58], ["Choice varies by group.", "Belonging is strongest for returning youth.", "New students need more support."]],
+        ["Jordan Lee", "Peer Mentor", [86, 81, 46], ["Young people lead many decisions.", "Everyone knows their role.", "Challenge could feel more meaningful."]],
+        ["Sam Rivera", "Teacher", [71, 68, 53], ["Students have options.", "Some students need clearer contribution paths.", "A public showcase may increase persistence."]]
+      ];
+      demo.forEach(([name, role, dimensionScores, notes]) => {
+        const answers = blankScores();
+        dimensions.forEach((dimension, index) => {
+          const base = dimensionScores[index];
+          answers[dimension.key].scores = [base - 4, base + 2, base + 5, base - 1].map((score) => Math.max(0, Math.min(100, score)));
+          answers[dimension.key].note = notes[index];
+        });
+        state.responses.push({
+          id: uid("response"),
+          programId,
+          userName: name,
+          role,
+          answers,
+          updatedAt: new Date().toISOString()
+        });
+      });
+      saveState();
+      render();
+      setView("results");
+    }
+
+    document.getElementById("saveUser").addEventListener("click", () => {
+      state.user = {
+        name: document.getElementById("userName").value.trim(),
+        role: document.getElementById("userRole").value
+      };
+      saveState();
+      render();
+    });
+
+    document.getElementById("createProgram").addEventListener("click", () => {
+      const name = document.getElementById("programName").value.trim();
+      if (!name) return;
+      const program = { id: uid("program"), name, createdAt: new Date().toISOString() };
+      state.programs.unshift(program);
+      state.activeProgramId = program.id;
+      document.getElementById("programName").value = "";
+      saveState();
+      render();
+    });
+
+    document.getElementById("seedDemo").addEventListener("click", seedDemoData);
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => setView(tab.dataset.view));
+    });
+
+    render();
+  </script>
+</body>
+</html>
