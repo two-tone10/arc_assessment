@@ -95,3 +95,5 @@ select
 from arc_question_scores s
 join arc_responses r on r.id = s.response_id
 group by r.organization_id, r.program_id, r.assessment_cycle_id, r.respondent_role, s.dimension;
+
+-- For CSV/data downloads, run docs/supabase-export-views.sql after creating the core tables.

@@ -52,6 +52,8 @@ If assessment saving does not persist scores/notes, run `docs/supabase-assessmen
 
 For prototype testing, `docs/supabase-pilot-rls-reset.sql` resets the app tables to permissive authenticated-user policies so the full workflow can be tested end-to-end before production hardening.
 
+For readable CSV downloads, run `docs/supabase-export-views.sql` and export from the `export_arc_question_scores`, `export_arc_dimension_scores`, or `export_arc_dimension_notes` views in Supabase.
+
 ## Current Storage Mode
 
 Right now, programs and responses are stored in browser `localStorage`. That means the prototype is useful for design review and local demos, but it is not yet a shared team repository.
