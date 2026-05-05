@@ -36,6 +36,8 @@ The current app can deploy without environment variables. When Supabase is added
 
 See `docs/supabase-vercel-setup.md` for the backend setup sequence.
 
+If the database was created before the first auth wiring pass, run `docs/supabase-auth-bootstrap.sql` once in Supabase SQL Editor.
+
 ## Current Storage Mode
 
 Right now, programs and responses are stored in browser `localStorage`. That means the prototype is useful for design review and local demos, but it is not yet a shared team repository.

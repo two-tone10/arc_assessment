@@ -43,7 +43,13 @@ The first shared-data milestone is not full AI. It is:
 - Responses are stored in Supabase.
 - Dashboards aggregate Supabase responses.
 
-## 5. Privacy Note
+## 5. Auth Setting for Early Pilots
+
+For the simplest pilot flow, open Supabase **Authentication > Providers > Email** and turn off required email confirmation. This lets a practitioner create an account and immediately use the assessment.
+
+If email confirmation stays on, new users may need to confirm by email before the app can create their profile and organization.
+
+## 6. Privacy Note
 
 Before real pilots, add a short consent/privacy statement explaining:
 
@@ -51,4 +57,3 @@ Before real pilots, add a short consent/privacy statement explaining:
 - Who can see aggregated results.
 - Whether qualitative notes are identifiable.
 - How AI-generated summaries will be used.
-

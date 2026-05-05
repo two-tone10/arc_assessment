@@ -6,6 +6,7 @@
   <title>ARC Purpose Development Assessment</title>
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --ink: #2A1A12;
@@ -204,7 +205,7 @@
       margin-bottom: 0.32rem;
     }
 
-    input[type="text"], textarea, select {
+    input[type="text"], input[type="email"], input[type="password"], textarea, select {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 7px;
@@ -214,7 +215,7 @@
       transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
     }
 
-    input[type="text"]:focus, textarea:focus, select:focus {
+    input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus, select:focus {
       outline: 0;
       border-color: var(--challenge);
       box-shadow: 0 0 0 3px rgba(196, 149, 74, 0.16);
@@ -737,6 +738,18 @@
               <input id="userName" type="text" placeholder="e.g., Maya Johnson">
             </div>
             <div>
+              <label for="userEmail">Email</label>
+              <input id="userEmail" type="email" placeholder="maya@example.org">
+            </div>
+            <div>
+              <label for="userPassword">Password</label>
+              <input id="userPassword" type="password" placeholder="At least 6 characters">
+            </div>
+            <div>
+              <label for="organizationName">Organization / network</label>
+              <input id="organizationName" type="text" placeholder="e.g., Purpose Learning Network">
+            </div>
+            <div>
               <label for="userRole">Role</label>
               <select id="userRole">
                 <option>Program Director</option>
@@ -747,6 +760,7 @@
               </select>
             </div>
             <button id="saveUser" type="button">Register / log in</button>
+            <div id="accessStatus" class="notice hidden"></div>
           </div>
         </section>
 
@@ -765,8 +779,8 @@
         </section>
 
         <section class="source-note">
-          <strong>Prototype data source</strong>
-          <p>This mockup currently stores programs and responses in this browser only, using local storage. In the production version, this would connect to an organization-level database so colleagues in the same network see the same programs and aggregate results.</p>
+          <strong>Data source</strong>
+          <p id="dataSourceCopy">This mockup currently stores programs and responses in this browser only, using local storage. Once connected, this panel will use the shared organization database.</p>
         </section>
       </aside>
 
@@ -826,18 +840,27 @@
     ];
 
     const defaultState = {
-      user: { name: "", role: "Program Director" },
+      user: {
+        id: "",
+        name: "",
+        email: "",
+        role: "Program Director",
+        organizationId: "",
+        organizationName: ""
+      },
       activeProgramId: "",
       programs: [],
       responses: []
     };
 
-    let state = loadState();
+    let state = normalizeState(loadState());
     let charts = {};
     let runtimeConfig = {
       storageMode: "local-prototype",
       aiInsightsEnabled: false
     };
+    let db = null;
+    let currentSession = null;
 
     function loadState() {
       try {
@@ -847,8 +870,30 @@
       }
     }
 
+    function normalizeState(candidate) {
+      return {
+        ...defaultState,
+        ...candidate,
+        user: { ...defaultState.user, ...(candidate.user || {}) },
+        programs: candidate.programs || [],
+        responses: candidate.responses || []
+      };
+    }
+
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function isSharedMode() {
+      return Boolean(db && currentSession && state.user.organizationId);
+    }
+
+    function setAccessStatus(message, tone = "info") {
+      const status = document.getElementById("accessStatus");
+      if (!status) return;
+      status.textContent = message;
+      status.classList.toggle("hidden", !message);
+      status.style.borderLeftColor = tone === "error" ? "var(--danger)" : "var(--challenge)";
     }
 
     function uid(prefix) {
@@ -864,6 +909,9 @@
     }
 
     function currentUserResponse() {
+      if (isSharedMode()) {
+        return responsesFor().find((response) => response.respondentId === state.user.id);
+      }
       const name = state.user.name.trim().toLowerCase();
       return responsesFor().find((response) => response.userName.trim().toLowerCase() === name && response.role === state.user.role);
     }
@@ -913,8 +961,11 @@
 
     function render() {
       document.getElementById("userName").value = state.user.name;
+      document.getElementById("userEmail").value = state.user.email || "";
+      document.getElementById("organizationName").value = state.user.organizationName || "";
       document.getElementById("userRole").value = state.user.role;
       renderRuntimeStatus();
+      renderDataSourceCopy();
       renderPrograms();
       renderAssessment();
       renderResults();
@@ -926,6 +977,12 @@
         const response = await fetch("/api/config");
         if (!response.ok) return;
         runtimeConfig = await response.json();
+        if (runtimeConfig.storageMode === "supabase-ready" && window.supabase) {
+          db = window.supabase.createClient(runtimeConfig.supabaseUrl, runtimeConfig.supabaseAnonKey);
+          const { data } = await db.auth.getSession();
+          currentSession = data.session;
+          if (currentSession) await loadSharedProfileAndData();
+        }
         renderRuntimeStatus();
       } catch {
         renderRuntimeStatus();
@@ -941,8 +998,180 @@
         ? "Shared database ready"
         : "Local prototype mode";
       badge.title = connected
-        ? "Vercel has Supabase environment variables. The next code step is replacing local storage calls with Supabase reads and writes."
+        ? "Supabase environment variables are available. Log in to use shared organization data."
         : "This deployment is using browser storage. Data is not yet shared across users or devices.";
+    }
+
+    function renderDataSourceCopy() {
+      const copy = document.getElementById("dataSourceCopy");
+      if (!copy) return;
+      if (isSharedMode()) {
+        copy.textContent = `Programs and responses are being loaded from the shared Supabase database for ${state.user.organizationName}.`;
+      } else if (db) {
+        copy.textContent = "Supabase is connected. Register or log in to load shared organization programs and responses.";
+      } else {
+        copy.textContent = "This mockup currently stores programs and responses in this browser only, using local storage. Once connected, this panel will use the shared organization database.";
+      }
+    }
+
+    async function loadSharedProfileAndData() {
+      if (!db || !currentSession) return;
+      const { data: profile, error } = await db
+        .from("profiles")
+        .select("id, full_name, default_role, organization_id, organizations(name)")
+        .eq("id", currentSession.user.id)
+        .maybeSingle();
+
+      if (error) {
+        setAccessStatus(error.message, "error");
+        return;
+      }
+
+      if (!profile) {
+        setAccessStatus("Supabase is connected. Complete your name, organization, role, email, and password, then register/log in.");
+        return;
+      }
+
+      state.user = {
+        ...state.user,
+        id: profile.id,
+        email: currentSession.user.email || state.user.email,
+        name: profile.full_name,
+        role: profile.default_role,
+        organizationId: profile.organization_id,
+        organizationName: profile.organizations?.name || state.user.organizationName
+      };
+
+      await loadSharedData();
+      saveState();
+    }
+
+    async function loadSharedData() {
+      if (!isSharedMode()) return;
+      const { data: programs, error: programError } = await db
+        .from("programs")
+        .select("id, name, description, created_at")
+        .eq("organization_id", state.user.organizationId)
+        .order("created_at", { ascending: false });
+
+      if (programError) {
+        setAccessStatus(programError.message, "error");
+        return;
+      }
+
+      state.programs = (programs || []).map((program) => ({
+        id: program.id,
+        name: program.name,
+        description: program.description,
+        createdAt: program.created_at
+      }));
+
+      if (!state.activeProgramId && state.programs.length) {
+        state.activeProgramId = state.programs[0].id;
+      }
+      if (state.activeProgramId && !state.programs.some((program) => program.id === state.activeProgramId)) {
+        state.activeProgramId = state.programs[0]?.id || "";
+      }
+
+      const { data: responses, error: responseError } = await db
+        .from("arc_responses")
+        .select("id, program_id, respondent_id, respondent_role, submitted_at, updated_at")
+        .eq("organization_id", state.user.organizationId);
+
+      if (responseError) {
+        setAccessStatus(responseError.message, "error");
+        return;
+      }
+
+      const responseIds = (responses || []).map((response) => response.id);
+      let scores = [];
+      let notes = [];
+
+      if (responseIds.length) {
+        const scoreResult = await db
+          .from("arc_question_scores")
+          .select("response_id, dimension, question_index, score")
+          .in("response_id", responseIds);
+        const noteResult = await db
+          .from("arc_dimension_notes")
+          .select("response_id, dimension, note")
+          .in("response_id", responseIds);
+
+        if (scoreResult.error || noteResult.error) {
+          setAccessStatus((scoreResult.error || noteResult.error).message, "error");
+          return;
+        }
+        scores = scoreResult.data || [];
+        notes = noteResult.data || [];
+      }
+
+      state.responses = (responses || []).map((response) => {
+        const answers = blankScores();
+        scores
+          .filter((score) => score.response_id === response.id)
+          .forEach((score) => {
+            answers[score.dimension].scores[score.question_index] = score.score;
+          });
+        notes
+          .filter((note) => note.response_id === response.id)
+          .forEach((note) => {
+            answers[note.dimension].note = note.note || "";
+          });
+
+        return {
+          id: response.id,
+          programId: response.program_id,
+          respondentId: response.respondent_id,
+          userName: response.respondent_id === state.user.id ? state.user.name : "Team member",
+          role: response.respondent_role,
+          answers,
+          updatedAt: response.updated_at || response.submitted_at
+        };
+      });
+
+      setAccessStatus(`Connected to ${state.user.organizationName}. Shared programs and responses are loaded.`);
+      saveState();
+    }
+
+    async function createOrganizationAndProfile() {
+      const organizationName = document.getElementById("organizationName").value.trim();
+      if (!organizationName) throw new Error("Enter an organization or network name.");
+
+      const { data: organization, error: orgError } = await db
+        .from("organizations")
+        .insert({ name: organizationName })
+        .select("id, name")
+        .single();
+
+      if (orgError) throw orgError;
+
+      const profilePayload = {
+        id: currentSession.user.id,
+        organization_id: organization.id,
+        full_name: state.user.name,
+        default_role: state.user.role
+      };
+
+      const { error: profileError } = await db
+        .from("profiles")
+        .insert(profilePayload);
+
+      if (profileError) throw profileError;
+
+      state.user.organizationId = organization.id;
+      state.user.organizationName = organization.name;
+    }
+
+    async function updateSharedProfile() {
+      const { error } = await db
+        .from("profiles")
+        .update({
+          full_name: state.user.name,
+          default_role: state.user.role
+        })
+        .eq("id", state.user.id);
+
+      if (error) throw error;
     }
 
     function renderPrograms() {
@@ -1046,13 +1275,18 @@
       `;
     }
 
-    function saveAssessment(programId) {
+    async function saveAssessment(programId) {
       if (!state.user.name.trim()) return;
       const answers = blankScores();
       dimensions.forEach((dimension) => {
         answers[dimension.key].scores = dimension.questions.map((_, index) => Number(document.querySelector(`[name="${dimension.key}_${index}"]`).value));
         answers[dimension.key].note = document.getElementById(`${dimension.key}_note`).value.trim();
       });
+
+      if (isSharedMode()) {
+        await saveSharedAssessment(programId, answers);
+        return;
+      }
 
       const existing = currentUserResponse();
       if (existing) {
@@ -1071,6 +1305,65 @@
       saveState();
       render();
       setView("results");
+    }
+
+    async function saveSharedAssessment(programId, answers) {
+      try {
+        const existing = currentUserResponse();
+        let responseId = existing?.id;
+
+        if (responseId) {
+          const { error } = await db
+            .from("arc_responses")
+            .update({
+              respondent_role: state.user.role,
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", responseId);
+          if (error) throw error;
+        } else {
+          const { data, error } = await db
+            .from("arc_responses")
+            .insert({
+              organization_id: state.user.organizationId,
+              program_id: programId,
+              respondent_id: state.user.id,
+              respondent_role: state.user.role
+            })
+            .select("id")
+            .single();
+          if (error) throw error;
+          responseId = data.id;
+        }
+
+        await db.from("arc_question_scores").delete().eq("response_id", responseId);
+        await db.from("arc_dimension_notes").delete().eq("response_id", responseId);
+
+        const scoreRows = dimensions.flatMap((dimension) =>
+          answers[dimension.key].scores.map((score, questionIndex) => ({
+            response_id: responseId,
+            dimension: dimension.key,
+            question_index: questionIndex,
+            score
+          }))
+        );
+        const noteRows = dimensions.map((dimension) => ({
+          response_id: responseId,
+          dimension: dimension.key,
+          note: answers[dimension.key].note
+        }));
+
+        const scoreResult = await db.from("arc_question_scores").insert(scoreRows);
+        if (scoreResult.error) throw scoreResult.error;
+        const noteResult = await db.from("arc_dimension_notes").insert(noteRows);
+        if (noteResult.error) throw noteResult.error;
+
+        await loadSharedData();
+        render();
+        setView("results");
+      } catch (error) {
+        setAccessStatus(error.message, "error");
+      }
     }
 
     function renderResults() {
@@ -1102,7 +1395,9 @@
           <p class="subtitle">${responses.length} response${responses.length === 1 ? "" : "s"} submitted · ${roleCount} role${roleCount === 1 ? "" : "s"} represented</p>
           <div class="source-note" style="margin-top:1rem;">
             <strong>Where these results come from</strong>
-            <p>For this prototype, the repository is the browser's local storage. Every saved response for the selected program is aggregated here. In a deployed tool, this same section would pull from a secure shared database filtered by organization, network, program, and role.</p>
+            <p>${isSharedMode()
+              ? "These results are pulled from Supabase and filtered to the current organization and selected program."
+              : "For this prototype, the repository is the browser's local storage. Every saved response for the selected program is aggregated here. In a deployed tool, this same section would pull from a secure shared database filtered by organization, network, program, and role."}</p>
           </div>
         </section>
         <section class="chart-grid">
@@ -1349,7 +1644,7 @@
         createdAt: new Date().toISOString()
       });
       state.activeProgramId = programId;
-      state.user = { name: "Maya Johnson", role: "Program Director" };
+      state.user = { ...defaultState.user, name: "Maya Johnson", role: "Program Director" };
       const demo = [
         ["Maya Johnson", "Program Director", [82, 79, 51], ["Youth choose issues and partners.", "Roles are clear during planning meetings.", "Could add a stronger final deliverable."]],
         ["Luis Chen", "Program Staff", [74, 72, 48], ["Students have real voice.", "Peer teams feel cohesive.", "Some tasks end too quickly."]],
@@ -1378,18 +1673,106 @@
       setView("results");
     }
 
-    document.getElementById("saveUser").addEventListener("click", () => {
+    async function handleAccess() {
       state.user = {
+        ...state.user,
         name: document.getElementById("userName").value.trim(),
-        role: document.getElementById("userRole").value
+        email: document.getElementById("userEmail").value.trim(),
+        role: document.getElementById("userRole").value,
+        organizationName: document.getElementById("organizationName").value.trim()
       };
-      saveState();
-      render();
-    });
 
-    document.getElementById("createProgram").addEventListener("click", () => {
+      if (!state.user.name) {
+        setAccessStatus("Enter your name before continuing.", "error");
+        return;
+      }
+
+      if (!db) {
+        saveState();
+        render();
+        return;
+      }
+
+      const password = document.getElementById("userPassword").value;
+      if (!state.user.email || !password) {
+        setAccessStatus("Enter email and password to use the shared database.", "error");
+        return;
+      }
+
+      try {
+        setAccessStatus("Connecting to Supabase...");
+        let authResult = await db.auth.signInWithPassword({
+          email: state.user.email,
+          password
+        });
+
+        if (authResult.error) {
+          authResult = await db.auth.signUp({
+            email: state.user.email,
+            password
+          });
+        }
+
+        if (authResult.error) throw authResult.error;
+        const { data } = await db.auth.getSession();
+        currentSession = data.session;
+
+        if (!currentSession) {
+          setAccessStatus("Account created. Check email confirmation settings in Supabase, then log in again.", "error");
+          return;
+        }
+
+        state.user.id = currentSession.user.id;
+        const { data: existingProfile, error: profileReadError } = await db
+          .from("profiles")
+          .select("id, organization_id")
+          .eq("id", state.user.id)
+          .maybeSingle();
+
+        if (profileReadError) throw profileReadError;
+
+        if (existingProfile) {
+          state.user.organizationId = existingProfile.organization_id;
+          await updateSharedProfile();
+        } else {
+          await createOrganizationAndProfile();
+        }
+
+        await loadSharedProfileAndData();
+        render();
+      } catch (error) {
+        setAccessStatus(error.message, "error");
+      }
+    }
+
+    document.getElementById("saveUser").addEventListener("click", handleAccess);
+
+    document.getElementById("createProgram").addEventListener("click", async () => {
       const name = document.getElementById("programName").value.trim();
       if (!name) return;
+
+      if (isSharedMode()) {
+        const { data, error } = await db
+          .from("programs")
+          .insert({
+            organization_id: state.user.organizationId,
+            name,
+            created_by: state.user.id
+          })
+          .select("id")
+          .single();
+
+        if (error) {
+          setAccessStatus(error.message, "error");
+          return;
+        }
+        state.activeProgramId = data.id;
+        document.getElementById("programName").value = "";
+        await loadSharedData();
+        render();
+        return;
+      }
+
       const program = { id: uid("program"), name, createdAt: new Date().toISOString() };
       state.programs.unshift(program);
       state.activeProgramId = program.id;
@@ -1404,8 +1787,13 @@
       tab.addEventListener("click", () => setView(tab.dataset.view));
     });
 
-    initRuntimeConfig();
-    render();
+    async function bootstrap() {
+      render();
+      await initRuntimeConfig();
+      render();
+    }
+
+    bootstrap();
   </script>
 </body>
 </html>
