@@ -28,7 +28,13 @@ with check (id = auth.uid());
 
 create policy "Authenticated users can create organizations"
 on organizations for insert
-with check (auth.uid() is not null);
+to authenticated
+with check (true);
+
+create policy "Authenticated users can read organizations during bootstrap"
+on organizations for select
+to authenticated
+using (true);
 
 create policy "Members can read their organization"
 on organizations for select

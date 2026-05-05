@@ -40,6 +40,8 @@ If the database was created before the first auth wiring pass, run `docs/supabas
 
 If the database was created before response-update policies were added, run `docs/supabase-delete-policies.sql` once in Supabase SQL Editor.
 
+If first login reports an organization Row Level Security error, run `docs/supabase-bootstrap-fix.sql` once in Supabase SQL Editor.
+
 ## Current Storage Mode
 
 Right now, programs and responses are stored in browser `localStorage`. That means the prototype is useful for design review and local demos, but it is not yet a shared team repository.
