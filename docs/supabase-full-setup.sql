@@ -261,6 +261,16 @@ with check (
   )
 );
 
+create policy "Members can delete notes for their own responses"
+on arc_dimension_notes for delete
+using (
+  response_id in (
+    select id
+    from arc_responses
+    where respondent_id = auth.uid()
+  )
+);
+
 -- Question scores
 
 create policy "Members can read organization scores"
@@ -287,6 +297,16 @@ using (
   )
 )
 with check (
+  response_id in (
+    select id
+    from arc_responses
+    where respondent_id = auth.uid()
+  )
+);
+
+create policy "Members can delete scores for their own responses"
+on arc_question_scores for delete
+using (
   response_id in (
     select id
     from arc_responses

@@ -759,7 +759,7 @@
                 <option>Teacher</option>
               </select>
             </div>
-            <button id="saveUser" type="button">Register / log in</button>
+            <button id="saveUser" type="button">Register / log in to shared database</button>
             <div id="accessStatus" class="notice hidden"></div>
           </div>
         </section>
@@ -888,6 +888,10 @@
       return Boolean(db && currentSession && state.user.organizationId);
     }
 
+    function requiresSharedLogin() {
+      return Boolean(db && !isSharedMode());
+    }
+
     function setAccessStatus(message, tone = "info") {
       const status = document.getElementById("accessStatus");
       if (!status) return;
@@ -993,12 +997,17 @@
       const badge = document.getElementById("runtimeStatus");
       if (!badge) return;
       const connected = runtimeConfig.storageMode === "supabase-ready";
+      const shared = isSharedMode();
       badge.classList.toggle("connected", connected);
-      badge.textContent = connected
+      badge.textContent = shared
+        ? "Shared database active"
+        : connected
         ? "Shared database ready"
         : "Local prototype mode";
-      badge.title = connected
-        ? "Supabase environment variables are available. Log in to use shared organization data."
+      badge.title = shared
+        ? "Programs and responses are saving to Supabase for this organization."
+        : connected
+        ? "Supabase is connected. Register or log in before creating programs or saving assessments."
         : "This deployment is using browser storage. Data is not yet shared across users or devices.";
     }
 
@@ -1177,7 +1186,9 @@
     function renderPrograms() {
       const list = document.getElementById("programList");
       if (!state.programs.length) {
-        list.innerHTML = `<div class="notice">Create a program to begin, or load demo data from the header.</div>`;
+        list.innerHTML = `<div class="notice">${requiresSharedLogin()
+          ? "Register or log in before creating shared programs."
+          : "Create a program to begin, or load demo data from the header."}</div>`;
         return;
       }
 
@@ -1223,7 +1234,7 @@
               <h2>${escapeHtml(program.name)}</h2>
               <p class="subtitle">${state.user.name ? `You are rating this selected program as ${escapeHtml(state.user.name)} · ${escapeHtml(state.user.role)}.` : "Register or log in before submitting your assessment."}</p>
             </div>
-            <button id="submitAssessment" type="button" ${state.user.name.trim() ? "" : "disabled"}>Save assessment</button>
+            <button id="submitAssessment" type="button" ${state.user.name.trim() && !requiresSharedLogin() ? "" : "disabled"}>Save assessment</button>
           </div>
           <div class="source-note" style="margin-bottom:1rem;">
             <strong>Where individuals rate each program</strong>
@@ -1277,6 +1288,10 @@
 
     async function saveAssessment(programId) {
       if (!state.user.name.trim()) return;
+      if (requiresSharedLogin()) {
+        setAccessStatus("Register or log in before saving to the shared database.", "error");
+        return;
+      }
       const answers = blankScores();
       dimensions.forEach((dimension) => {
         answers[dimension.key].scores = dimension.questions.map((_, index) => Number(document.querySelector(`[name="${dimension.key}_${index}"]`).value));
@@ -1359,6 +1374,7 @@
         if (noteResult.error) throw noteResult.error;
 
         await loadSharedData();
+        setAccessStatus("Assessment saved to the shared Supabase database.");
         render();
         setView("results");
       } catch (error) {
@@ -1698,6 +1714,10 @@
         setAccessStatus("Enter email and password to use the shared database.", "error");
         return;
       }
+      if (!state.user.organizationName) {
+        setAccessStatus("Enter an organization or network name to create your shared workspace.", "error");
+        return;
+      }
 
       try {
         setAccessStatus("Connecting to Supabase...");
@@ -1750,6 +1770,11 @@
     document.getElementById("createProgram").addEventListener("click", async () => {
       const name = document.getElementById("programName").value.trim();
       if (!name) return;
+
+      if (requiresSharedLogin()) {
+        setAccessStatus("Register or log in before creating shared programs.", "error");
+        return;
+      }
 
       if (isSharedMode()) {
         const { data, error } = await db
