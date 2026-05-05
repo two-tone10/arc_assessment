@@ -166,6 +166,7 @@ using (
 
 create policy "Members can create organization programs"
 on programs for insert
+to authenticated
 with check (
   organization_id in (
     select organization_id

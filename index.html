@@ -1769,7 +1769,10 @@
 
     document.getElementById("createProgram").addEventListener("click", async () => {
       const name = document.getElementById("programName").value.trim();
-      if (!name) return;
+      if (!name) {
+        setAccessStatus("Enter a program name before creating a shared program.", "error");
+        return;
+      }
 
       if (requiresSharedLogin()) {
         setAccessStatus("Register or log in before creating shared programs.", "error");
@@ -1777,6 +1780,7 @@
       }
 
       if (isSharedMode()) {
+        setAccessStatus("Creating shared program...");
         const { data, error } = await db
           .from("programs")
           .insert({
@@ -1794,6 +1798,7 @@
         state.activeProgramId = data.id;
         document.getElementById("programName").value = "";
         await loadSharedData();
+        setAccessStatus(`Created "${name}" in the shared database.`);
         render();
         return;
       }
