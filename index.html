@@ -1079,12 +1079,18 @@
         return;
       }
 
-      state.programs = (programs || []).map((program) => ({
+      const sharedPrograms = (programs || []).map((program) => ({
         id: program.id,
         name: program.name,
         description: program.description,
         createdAt: program.created_at
       }));
+
+      if (!sharedPrograms.length && state.programs.length) {
+        setProgramStatus("No shared programs were returned from Supabase yet, so the current selected program is staying visible for this session.");
+      } else {
+        state.programs = sharedPrograms;
+      }
 
       if (!state.activeProgramId && state.programs.length) {
         state.activeProgramId = state.programs[0].id;
@@ -1823,10 +1829,9 @@
           state.activeProgramId = programId;
           document.getElementById("programName").value = "";
           saveState();
-          setProgramStatus(`Created "${name}" in the shared database.`);
+          setProgramStatus(`Created "${name}" in the shared database. The program is selected and ready to rate.`);
           render();
-          await loadSharedData();
-          render();
+          setView("assess");
           return;
         } catch (error) {
           setProgramStatus(`Program creation stopped: ${error.message}`, "error");
