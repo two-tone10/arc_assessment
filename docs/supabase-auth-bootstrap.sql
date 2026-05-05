@@ -14,3 +14,10 @@ create policy "Authenticated users can read organizations during bootstrap"
 on organizations for select
 to authenticated
 using (true);
+
+drop policy if exists "Users can insert their own profile" on profiles;
+
+create policy "Users can insert their own profile"
+on profiles for insert
+to authenticated
+with check (id = auth.uid());
