@@ -1781,24 +1781,32 @@
 
       if (isSharedMode()) {
         setAccessStatus("Creating shared program...");
-        const { data, error } = await db
+        const programId = crypto.randomUUID();
+        const { error } = await db
           .from("programs")
           .insert({
+            id: programId,
             organization_id: state.user.organizationId,
             name,
             created_by: state.user.id
-          })
-          .select("id")
-          .single();
+          });
 
         if (error) {
           setAccessStatus(error.message, "error");
           return;
         }
-        state.activeProgramId = data.id;
+
+        state.programs.unshift({
+          id: programId,
+          name,
+          createdAt: new Date().toISOString()
+        });
+        state.activeProgramId = programId;
         document.getElementById("programName").value = "";
-        await loadSharedData();
+        saveState();
         setAccessStatus(`Created "${name}" in the shared database.`);
+        render();
+        await loadSharedData();
         render();
         return;
       }
