@@ -50,6 +50,8 @@ If shared program creation reports a program Row Level Security violation, run `
 
 If assessment saving does not persist scores/notes, run `docs/supabase-assessment-save-fix.sql` once in Supabase SQL Editor.
 
+For prototype testing, `docs/supabase-pilot-rls-reset.sql` resets the app tables to permissive authenticated-user policies so the full workflow can be tested end-to-end before production hardening.
+
 ## Current Storage Mode
 
 Right now, programs and responses are stored in browser `localStorage`. That means the prototype is useful for design review and local demos, but it is not yet a shared team repository.
