@@ -773,6 +773,7 @@
               <input id="programName" type="text" placeholder="e.g., Summer Bridge Project">
             </div>
             <button id="createProgram" type="button">Create shared program</button>
+            <div id="programStatus" class="notice hidden"></div>
           </div>
           <hr style="border:0;border-top:1px solid var(--line);margin:1rem 0;">
           <div id="programList" class="program-list"></div>
@@ -859,6 +860,7 @@
       storageMode: "local-prototype",
       aiInsightsEnabled: false
     };
+    const APP_BUILD = "shared-program-debug-2026-05-05";
     let db = null;
     let currentSession = null;
 
@@ -894,6 +896,14 @@
 
     function setAccessStatus(message, tone = "info") {
       const status = document.getElementById("accessStatus");
+      if (!status) return;
+      status.textContent = message;
+      status.classList.toggle("hidden", !message);
+      status.style.borderLeftColor = tone === "error" ? "var(--danger)" : "var(--challenge)";
+    }
+
+    function setProgramStatus(message, tone = "info") {
+      const status = document.getElementById("programStatus");
       if (!status) return;
       status.textContent = message;
       status.classList.toggle("hidden", !message);
@@ -1009,6 +1019,7 @@
         : connected
         ? "Supabase is connected. Register or log in before creating programs or saving assessments."
         : "This deployment is using browser storage. Data is not yet shared across users or devices.";
+      badge.dataset.build = APP_BUILD;
     }
 
     function renderDataSourceCopy() {
@@ -1770,45 +1781,57 @@
     document.getElementById("createProgram").addEventListener("click", async () => {
       const name = document.getElementById("programName").value.trim();
       if (!name) {
-        setAccessStatus("Enter a program name before creating a shared program.", "error");
+        setProgramStatus("Enter a program name before creating a shared program.", "error");
         return;
       }
 
       if (requiresSharedLogin()) {
-        setAccessStatus("Register or log in before creating shared programs.", "error");
+        setProgramStatus("Register or log in before creating shared programs.", "error");
         return;
       }
 
       if (isSharedMode()) {
-        setAccessStatus("Creating shared program...");
-        const programId = crypto.randomUUID();
-        const { error } = await db
-          .from("programs")
-          .insert({
-            id: programId,
-            organization_id: state.user.organizationId,
-            name,
-            created_by: state.user.id
-          });
+        try {
+          setProgramStatus(`Creating "${name}" in Supabase...`);
+          const { data: sessionData } = await db.auth.getSession();
+          currentSession = sessionData.session;
+          if (!currentSession) {
+            setProgramStatus("Your login session expired. Register or log in again before creating a program.", "error");
+            return;
+          }
 
-        if (error) {
-          setAccessStatus(error.message, "error");
+          const programId = crypto.randomUUID();
+          const { error } = await db
+            .from("programs")
+            .insert({
+              id: programId,
+              organization_id: state.user.organizationId,
+              name,
+              created_by: state.user.id
+            });
+
+          if (error) {
+            setProgramStatus(`Supabase program insert failed: ${error.message}`, "error");
+            return;
+          }
+
+          state.programs.unshift({
+            id: programId,
+            name,
+            createdAt: new Date().toISOString()
+          });
+          state.activeProgramId = programId;
+          document.getElementById("programName").value = "";
+          saveState();
+          setProgramStatus(`Created "${name}" in the shared database.`);
+          render();
+          await loadSharedData();
+          render();
+          return;
+        } catch (error) {
+          setProgramStatus(`Program creation stopped: ${error.message}`, "error");
           return;
         }
-
-        state.programs.unshift({
-          id: programId,
-          name,
-          createdAt: new Date().toISOString()
-        });
-        state.activeProgramId = programId;
-        document.getElementById("programName").value = "";
-        saveState();
-        setAccessStatus(`Created "${name}" in the shared database.`);
-        render();
-        await loadSharedData();
-        render();
-        return;
       }
 
       const program = { id: uid("program"), name, createdAt: new Date().toISOString() };
@@ -1816,6 +1839,7 @@
       state.activeProgramId = program.id;
       document.getElementById("programName").value = "";
       saveState();
+      setProgramStatus(`Created "${name}" in local prototype storage.`);
       render();
     });
 
