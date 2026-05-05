@@ -55,7 +55,7 @@ create table arc_responses (
 );
 
 create table arc_dimension_notes (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   response_id uuid not null references arc_responses(id) on delete cascade,
   dimension text not null check (dimension in ('agency', 'role', 'challenge')),
   note text not null default '',
@@ -63,7 +63,7 @@ create table arc_dimension_notes (
 );
 
 create table arc_question_scores (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   response_id uuid not null references arc_responses(id) on delete cascade,
   dimension text not null check (dimension in ('agency', 'role', 'challenge')),
   question_index integer not null check (question_index between 0 and 3),
@@ -95,4 +95,3 @@ select
 from arc_question_scores s
 join arc_responses r on r.id = s.response_id
 group by r.organization_id, r.program_id, r.assessment_cycle_id, r.respondent_role, s.dimension;
-

@@ -58,7 +58,7 @@ create table arc_responses (
 );
 
 create table arc_dimension_notes (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   response_id uuid not null references arc_responses(id) on delete cascade,
   dimension text not null check (dimension in ('agency', 'role', 'challenge')),
   note text not null default '',
@@ -66,7 +66,7 @@ create table arc_dimension_notes (
 );
 
 create table arc_question_scores (
-  id uuid primary key default gen_random_uuid(),
+  id text primary key,
   response_id uuid not null references arc_responses(id) on delete cascade,
   dimension text not null check (dimension in ('agency', 'role', 'challenge')),
   question_index integer not null check (question_index between 0 and 3),
@@ -216,17 +216,14 @@ using (
 
 create policy "Members can create their own responses"
 on arc_responses for insert
+to authenticated
 with check (
   respondent_id = auth.uid()
-  and organization_id in (
-    select organization_id
-    from profiles
-    where profiles.id = auth.uid()
-  )
 );
 
 create policy "Members can update their own responses"
 on arc_responses for update
+to authenticated
 using (respondent_id = auth.uid())
 with check (respondent_id = auth.uid());
 
@@ -248,6 +245,7 @@ using (
 
 create policy "Members can write notes for their own responses"
 on arc_dimension_notes for all
+to authenticated
 using (
   response_id in (
     select id
@@ -291,6 +289,7 @@ using (
 
 create policy "Members can write scores for their own responses"
 on arc_question_scores for all
+to authenticated
 using (
   response_id in (
     select id

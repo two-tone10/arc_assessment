@@ -1341,38 +1341,28 @@
 
     async function saveSharedAssessment(programId, answers) {
       try {
+        setAccessStatus("Saving assessment response...");
         const existing = currentUserResponse();
-        let responseId = existing?.id;
+        const responseId = existing?.id || crypto.randomUUID();
 
-        if (responseId) {
-          const { error } = await db
-            .from("arc_responses")
-            .update({
-              respondent_role: state.user.role,
-              updated_at: new Date().toISOString()
-            })
-            .eq("id", responseId);
-          if (error) throw error;
-        } else {
-          const { data, error } = await db
-            .from("arc_responses")
-            .insert({
-              organization_id: state.user.organizationId,
-              program_id: programId,
-              respondent_id: state.user.id,
-              respondent_role: state.user.role
-            })
-            .select("id")
-            .single();
-          if (error) throw error;
-          responseId = data.id;
+        const responseResult = await db
+          .from("arc_responses")
+          .upsert({
+            id: responseId,
+            organization_id: state.user.organizationId,
+            program_id: programId,
+            respondent_id: state.user.id,
+            respondent_role: state.user.role,
+            updated_at: new Date().toISOString()
+          }, { onConflict: "id" });
+
+        if (responseResult.error) {
+          throw new Error(`Could not save response shell: ${responseResult.error.message}`);
         }
-
-        await db.from("arc_question_scores").delete().eq("response_id", responseId);
-        await db.from("arc_dimension_notes").delete().eq("response_id", responseId);
 
         const scoreRows = dimensions.flatMap((dimension) =>
           answers[dimension.key].scores.map((score, questionIndex) => ({
+            id: `${responseId}_${dimension.key}_${questionIndex}`,
             response_id: responseId,
             dimension: dimension.key,
             question_index: questionIndex,
@@ -1380,20 +1370,48 @@
           }))
         );
         const noteRows = dimensions.map((dimension) => ({
+          id: `${responseId}_${dimension.key}`,
           response_id: responseId,
           dimension: dimension.key,
           note: answers[dimension.key].note
         }));
 
-        const scoreResult = await db.from("arc_question_scores").insert(scoreRows);
-        if (scoreResult.error) throw scoreResult.error;
-        const noteResult = await db.from("arc_dimension_notes").insert(noteRows);
-        if (noteResult.error) throw noteResult.error;
+        setAccessStatus("Saving ARC item scores...");
+        const scoreResult = await db
+          .from("arc_question_scores")
+          .upsert(scoreRows, { onConflict: "id" });
+        if (scoreResult.error) {
+          throw new Error(`Could not save ARC item scores: ${scoreResult.error.message}`);
+        }
 
-        await loadSharedData();
+        setAccessStatus("Saving qualitative notes...");
+        const noteResult = await db
+          .from("arc_dimension_notes")
+          .upsert(noteRows, { onConflict: "id" });
+        if (noteResult.error) {
+          throw new Error(`Could not save qualitative notes: ${noteResult.error.message}`);
+        }
+
         setAccessStatus("Assessment saved to the shared Supabase database.");
+        const localExisting = currentUserResponse();
+        if (localExisting) {
+          localExisting.answers = answers;
+          localExisting.updatedAt = new Date().toISOString();
+        } else {
+          state.responses.push({
+            id: responseId,
+            programId,
+            respondentId: state.user.id,
+            userName: state.user.name,
+            role: state.user.role,
+            answers,
+            updatedAt: new Date().toISOString()
+          });
+        }
+        saveState();
         render();
         setView("results");
+        await loadSharedData();
       } catch (error) {
         setAccessStatus(error.message, "error");
       }

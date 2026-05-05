@@ -48,6 +48,8 @@ If logged-in users cannot create shared programs, run `docs/supabase-program-ins
 
 If shared program creation reports a program Row Level Security violation, run `docs/supabase-program-bootstrap-fix.sql` once in Supabase SQL Editor.
 
+If assessment saving does not persist scores/notes, run `docs/supabase-assessment-save-fix.sql` once in Supabase SQL Editor.
+
 ## Current Storage Mode
 
 Right now, programs and responses are stored in browser `localStorage`. That means the prototype is useful for design review and local demos, but it is not yet a shared team repository.

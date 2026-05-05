@@ -111,17 +111,14 @@ using (
 
 create policy "Members can create their own responses"
 on arc_responses for insert
+to authenticated
 with check (
   respondent_id = auth.uid()
-  and organization_id in (
-    select organization_id
-    from profiles
-    where profiles.id = auth.uid()
-  )
 );
 
 create policy "Members can update their own responses"
 on arc_responses for update
+to authenticated
 using (respondent_id = auth.uid())
 with check (respondent_id = auth.uid());
 
@@ -143,6 +140,7 @@ using (
 
 create policy "Members can write notes for their own responses"
 on arc_dimension_notes for all
+to authenticated
 using (
   response_id in (
     select id
@@ -186,6 +184,7 @@ using (
 
 create policy "Members can write scores for their own responses"
 on arc_question_scores for all
+to authenticated
 using (
   response_id in (
     select id
