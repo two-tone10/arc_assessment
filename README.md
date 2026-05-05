@@ -46,6 +46,8 @@ If first login then reports a profile Row Level Security error, run `docs/supaba
 
 If logged-in users cannot create shared programs, run `docs/supabase-program-insert-fix.sql` once in Supabase SQL Editor.
 
+If shared program creation reports a program Row Level Security violation, run `docs/supabase-program-bootstrap-fix.sql` once in Supabase SQL Editor.
+
 ## Current Storage Mode
 
 Right now, programs and responses are stored in browser `localStorage`. That means the prototype is useful for design review and local demos, but it is not yet a shared team repository.

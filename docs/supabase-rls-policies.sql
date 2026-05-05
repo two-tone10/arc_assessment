@@ -62,13 +62,7 @@ using (
 create policy "Members can create organization programs"
 on programs for insert
 to authenticated
-with check (
-  organization_id in (
-    select organization_id
-    from profiles
-    where profiles.id = auth.uid()
-  )
-);
+with check (created_by = auth.uid());
 
 create policy "Creators can update their programs"
 on programs for update
