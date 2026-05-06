@@ -9,24 +9,24 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --ink: #f8fafc;
-      --muted: #d9e1e8;
-      --quiet: #aebbc7;
-      --line: rgba(255, 255, 255, 0.16);
-      --paper: #071f36;
-      --panel: #0b2d4d;
-      --panel-warm: #0e3559;
+      --ink: #2f3d36;
+      --muted: #4d5f54;
+      --quiet: #748176;
+      --line: #dbe8dc;
+      --paper: #f7fbf7;
+      --panel: #FFFFFF;
+      --panel-warm: #fbfefb;
       --agency: #0b2d4d;
-      --agency-soft: #123b61;
+      --agency-soft: #e7edf2;
       --role: #6fa8dc;
-      --role-soft: #143d61;
+      --role-soft: #e8f2fb;
       --challenge: #8b8f92;
-      --challenge-soft: #202f3d;
+      --challenge-soft: #eeeeec;
       --accent: #6fa8dc;
       --accent-dark: #0b2d4d;
-      --charcoal: #f8fafc;
-      --charcoal-dark: #071f36;
-      --soft: rgba(255, 255, 255, 0.08);
+      --charcoal: #34433b;
+      --charcoal-dark: #25322b;
+      --soft: #edf5ee;
       --danger: #B85050;
       font-family: "Source Sans 3", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--ink);
@@ -38,7 +38,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--paper);
+      background: #fbfaf6;
     }
 
     button, input, textarea, select { font: inherit; }
@@ -68,8 +68,8 @@
     }
 
     button.ghost {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--ink);
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--accent);
       border: 1px solid var(--line);
     }
 
@@ -82,8 +82,8 @@
 
     header {
       padding: 1rem clamp(1rem, 3vw, 2.5rem);
-      border-bottom: 1px solid var(--line);
-      background: rgba(7, 31, 54, 0.92);
+      border-bottom: 1px solid rgba(219, 232, 220, 0.9);
+      background: rgba(247, 251, 247, 0.9);
       backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
@@ -118,7 +118,7 @@
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 0.42rem 0.68rem;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(226, 240, 229, 0.72);
       color: var(--muted);
       font-size: 0.78rem;
       font-weight: 800;
@@ -126,9 +126,9 @@
     }
 
     .status-pill.connected {
-      color: white;
-      border-color: rgba(111, 168, 220, 0.44);
-      background: rgba(111, 168, 220, 0.18);
+      color: var(--accent-dark);
+      border-color: rgba(47, 138, 70, 0.28);
+      background: rgba(47, 138, 70, 0.12);
     }
 
     .mark {
@@ -137,7 +137,7 @@
       border-radius: 8px;
       display: grid;
       place-items: center;
-      background: rgba(255, 255, 255, 0.12);
+      background: var(--charcoal);
       color: white;
       font-weight: 900;
       letter-spacing: 0;
@@ -149,10 +149,10 @@
     h1, h2, h3 {
       font-family: "Libre Baskerville", Georgia, serif;
       font-weight: 700;
-      color: var(--ink);
+      color: var(--charcoal);
     }
 
-    header h1 { color: var(--ink); }
+    header h1 { color: var(--charcoal); }
     header .subtitle { color: var(--quiet); }
 
     h1 {
@@ -182,7 +182,7 @@
 
     .panel, .card {
       background: var(--panel-warm);
-      border: 1px solid var(--line);
+      border: 1px solid rgba(232, 226, 216, 0.95);
       border-radius: 8px;
       box-shadow: 0 18px 46px rgba(47, 61, 54, 0.08);
     }
@@ -206,8 +206,8 @@
       border: 1px solid var(--line);
       border-radius: 7px;
       padding: 0.72rem;
-      background: rgba(255, 255, 255, 0.96);
-      color: #0b2d4d;
+      background: white;
+      color: var(--ink);
       transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
     }
 
@@ -263,7 +263,7 @@
     }
 
     .program-btn {
-      background: rgba(255, 255, 255, 0.08);
+      background: white;
       color: var(--ink);
       border: 1px solid var(--line);
       text-align: left;
@@ -274,7 +274,7 @@
     .program-btn.active {
       border-color: var(--accent);
       box-shadow: inset 4px 0 0 var(--accent);
-      background: rgba(255, 255, 255, 0.14);
+      background: #FFFFFF;
     }
 
     .hero {
@@ -288,7 +288,7 @@
     .hero-main {
       border-radius: 8px;
       padding: clamp(1.2rem, 3vw, 2rem);
-      color: var(--ink);
+      color: var(--charcoal);
       background: var(--panel-warm);
       min-height: 210px;
       display: grid;
@@ -313,7 +313,7 @@
       line-height: 0.95;
       margin-bottom: 0.8rem;
       max-width: 760px;
-      color: var(--ink);
+      color: var(--charcoal);
       position: relative;
       z-index: 1;
     }
@@ -333,7 +333,7 @@
     }
 
     .flow-card {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 253, 249, 0.96);
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 0.95rem;
@@ -373,7 +373,7 @@
     }
 
     .source-note {
-      background: rgba(255, 255, 255, 0.08);
+      background: #FFFDF9;
       border: 1px solid var(--line);
       border-left: 4px solid var(--challenge);
       border-radius: 8px;
@@ -433,6 +433,79 @@
       gap: 1rem;
       align-items: flex-start;
       margin-bottom: 1rem;
+    }
+
+    .arc-step {
+      --dimension-color: var(--agency);
+      border-top: 5px solid var(--dimension-color);
+      padding: clamp(1rem, 3vw, 1.35rem);
+      background: var(--panel-warm);
+    }
+
+    .arc-step-intro {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+      margin-bottom: 0.8rem;
+      padding-bottom: 0.9rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .arc-step-letter {
+      font-family: "Libre Baskerville", Georgia, serif;
+      font-size: clamp(4.5rem, 14vw, 8rem);
+      line-height: 0.82;
+      color: var(--dimension-color);
+    }
+
+    .arc-step-intro h3 {
+      font-size: clamp(1.45rem, 3.8vw, 2.15rem);
+      margin: 0 0 0.3rem;
+      color: var(--charcoal-dark);
+    }
+
+    .step-progress {
+      display: flex;
+      gap: 0.45rem;
+      margin-top: 0.7rem;
+    }
+
+    .step-dot {
+      width: 2.1rem;
+      height: 0.35rem;
+      border-radius: 999px;
+      background: var(--soft);
+    }
+
+    .step-dot.active {
+      background: var(--dimension-color);
+    }
+
+    .assessment-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: center;
+      margin-top: 1rem;
+    }
+
+    .assessment-actions .secondary {
+      min-width: 6.5rem;
+    }
+
+    .assessment-actions .next-action {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      background: var(--dimension-color);
+    }
+
+    .assessment-actions .next-action::after {
+      content: "→";
+      font-size: 1rem;
+      line-height: 1;
     }
 
     .dimension {
@@ -525,7 +598,7 @@
       text-align: center;
       padding: 0.4rem 0.25rem;
       font-weight: 850;
-      background: rgba(255, 255, 255, 0.12);
+      background: var(--charcoal);
       color: white;
     }
 
@@ -562,7 +635,7 @@
 
     .kpi {
       border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.08);
+      background: white;
       border-radius: 8px;
       padding: 0.8rem;
       box-shadow: inset 0 -3px 0 rgba(196, 149, 74, 0.18);
@@ -613,7 +686,7 @@
       border-radius: 8px;
       padding: 1rem;
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.08);
+      background: #FFFDF9;
     }
 
     .hidden { display: none !important; }
@@ -632,8 +705,8 @@
       min-height: 100svh;
       display: grid;
       grid-template-columns: 1fr;
-      background: var(--paper);
-      color: var(--ink);
+      background: #fbfaf6;
+      color: var(--charcoal);
     }
 
     body:not(.landing-active) .landing {
@@ -655,12 +728,12 @@
       line-height: 0.92;
       margin: 0 0 2rem;
       letter-spacing: 0;
-      color: var(--ink);
+      color: var(--charcoal);
     }
 
-    .landing-title .letter-a { color: #ffffff; }
-    .landing-title .letter-r { color: #8b8f92; }
-    .landing-title .letter-c { color: #6fa8dc; }
+    .landing-title .letter-a { color: var(--agency); }
+    .landing-title .letter-r { color: var(--role); }
+    .landing-title .letter-c { color: var(--challenge); }
 
     .enter-button {
       display: inline-flex;
@@ -669,8 +742,8 @@
       border-radius: 999px;
       padding: 0.9rem 1.2rem;
       background: var(--role-soft);
-      color: var(--ink);
-      border: 1px solid var(--line);
+      color: var(--charcoal);
+      border: 1px solid rgba(47, 138, 70, 0.16);
       box-shadow: none;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -715,7 +788,7 @@
       text-align: center;
       border: 1px dashed var(--line);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.78);
     }
 
     @media (max-width: 860px) {
@@ -737,6 +810,11 @@
 
       .assessment-header {
         display: grid;
+      }
+
+      .arc-step-intro {
+        grid-template-columns: 1fr;
+        gap: 0.45rem;
       }
 
       .topbar {
@@ -793,6 +871,16 @@
         width: 4.2rem;
       }
 
+      .assessment-actions {
+        display: grid;
+      }
+
+      .assessment-actions .secondary,
+      .assessment-actions .next-action {
+        width: 100%;
+        justify-content: center;
+      }
+
       .topbar {
         display: grid;
       }
@@ -811,7 +899,7 @@
 
       .landing {
         grid-template-columns: 1fr;
-        background: var(--paper);
+        background: #fbfaf6;
       }
 
       .landing-copy {
@@ -1042,6 +1130,11 @@
     const APP_BUILD = "shared-program-debug-2026-05-05";
     let db = null;
     let currentSession = null;
+    let assessmentStep = 0;
+    let assessmentDraft = {
+      programId: "",
+      answers: null
+    };
 
     function loadState() {
       try {
@@ -1113,11 +1206,56 @@
       return responsesFor().find((response) => response.userName.trim().toLowerCase() === name && response.role === state.user.role);
     }
 
+    function cloneAnswers(answers) {
+      return Object.fromEntries(dimensions.map((dimension) => [
+        dimension.key,
+        {
+          scores: [...answers[dimension.key].scores],
+          note: answers[dimension.key].note || ""
+        }
+      ]));
+    }
+
     function blankScores() {
       return Object.fromEntries(dimensions.map((dimension) => [
         dimension.key,
         { scores: [50, 50, 50, 50], note: "" }
       ]));
+    }
+
+    function ensureAssessmentDraft(programId, response) {
+      if (assessmentDraft.programId === programId && assessmentDraft.answers) return;
+      assessmentStep = 0;
+      assessmentDraft = {
+        programId,
+        answers: cloneAnswers(response.answers)
+      };
+    }
+
+    function resetAssessmentDraft(programId = "") {
+      assessmentStep = 0;
+      assessmentDraft = {
+        programId,
+        answers: null
+      };
+    }
+
+    function syncCurrentAssessmentStep() {
+      if (!assessmentDraft.answers) return;
+      const dimension = dimensions[assessmentStep];
+      if (!dimension) return;
+      dimension.questions.forEach((_, index) => {
+        const input = document.querySelector(`[name="${dimension.key}_${index}"]`);
+        if (input) assessmentDraft.answers[dimension.key].scores[index] = Number(input.value);
+      });
+      const note = document.getElementById(`${dimension.key}_note`);
+      if (note) assessmentDraft.answers[dimension.key].note = note.value.trim();
+    }
+
+    function setAssessmentStep(step) {
+      syncCurrentAssessmentStep();
+      assessmentStep = Math.max(0, Math.min(dimensions.length - 1, step));
+      renderAssessment();
     }
 
     function dimensionAverage(response, key) {
@@ -1428,6 +1566,7 @@
       const view = document.getElementById("assessView");
       const program = activeProgram();
       if (!program) {
+        resetAssessmentDraft();
         view.innerHTML = `<div class="empty"><h2>Select or create a program</h2><p>Assessments are attached to a shared program so colleagues can evaluate the same youth experience.</p></div>`;
         return;
       }
@@ -1439,6 +1578,14 @@
         role: state.user.role,
         answers: blankScores()
       };
+      ensureAssessmentDraft(program.id, response);
+      const dimension = dimensions[assessmentStep] || dimensions[0];
+      const nextDimension = dimensions[assessmentStep + 1];
+      const canSave = state.user.name.trim() && !requiresSharedLogin();
+      const draftResponse = {
+        ...response,
+        answers: assessmentDraft.answers
+      };
 
       view.innerHTML = `
         <div class="panel">
@@ -1448,14 +1595,17 @@
               <h2>${escapeHtml(program.name)}</h2>
               <p class="subtitle">${state.user.name ? `You are rating this selected program as ${escapeHtml(state.user.name)} · ${escapeHtml(state.user.role)}.` : "Register or log in before submitting your assessment."}</p>
             </div>
-            <button id="submitAssessment" type="button" ${state.user.name.trim() && !requiresSharedLogin() ? "" : "disabled"}>Save assessment</button>
           </div>
           <div class="source-note" style="margin-bottom:1rem;">
             <strong>Where individuals rate each program</strong>
-            <p>This is the individual rating screen. Each adult selects a program in the left panel, answers these ARC questions for that specific program, and saves one response tied to their role.</p>
+            <p>This is the individual rating screen. Each adult selects a program in the left panel, moves through Agency, Role Clarity, and Challenge, then saves one response tied to their role.</p>
           </div>
-          <div class="stack">
-            ${dimensions.map((dimension) => renderDimension(dimension, response)).join("")}
+          ${renderDimensionStep(dimension, draftResponse)}
+          <div class="assessment-actions" style="--dimension-color:${dimension.color}">
+            ${assessmentStep > 0 ? `<button id="prevDimension" class="secondary" type="button">Back</button>` : `<span></span>`}
+            ${nextDimension
+              ? `<button id="nextDimension" class="next-action" type="button">Rate ${nextDimension.label}</button>`
+              : `<button id="submitAssessment" class="next-action" type="button" ${canSave ? "" : "disabled"}>Save assessment</button>`}
           </div>
         </div>
       `;
@@ -1466,18 +1616,28 @@
         });
       });
 
-      document.getElementById("submitAssessment").addEventListener("click", () => saveAssessment(program.id));
+      const previous = document.getElementById("prevDimension");
+      if (previous) previous.addEventListener("click", () => setAssessmentStep(assessmentStep - 1));
+
+      const next = document.getElementById("nextDimension");
+      if (next) next.addEventListener("click", () => setAssessmentStep(assessmentStep + 1));
+
+      const submit = document.getElementById("submitAssessment");
+      if (submit) submit.addEventListener("click", () => saveAssessment(program.id));
     }
 
-    function renderDimension(dimension, response) {
+    function renderDimensionStep(dimension, response) {
       return `
-        <article class="card dimension ${dimension.key === "role" ? "role" : dimension.key}">
-          <div class="dimension-head">
+        <article class="card arc-step" style="--dimension-color:${dimension.color}">
+          <div class="arc-step-intro">
+            <div class="arc-step-letter">${dimension.label.charAt(0)}</div>
             <div>
               <h3>${dimension.label}</h3>
               <p class="subtitle">${dimension.definition}</p>
+              <div class="step-progress" aria-label="Assessment progress">
+                ${dimensions.map((stepDimension, index) => `<span class="step-dot ${index === assessmentStep ? "active" : ""}" style="${index === assessmentStep ? `--dimension-color:${stepDimension.color}` : ""}"></span>`).join("")}
+              </div>
             </div>
-            <span class="chip">4 slider items</span>
           </div>
           ${dimension.questions.map((question, index) => {
             const name = `${dimension.key}_${index}`;
@@ -1506,11 +1666,8 @@
         setAccessStatus("Register or log in before saving to the shared database.", "error");
         return;
       }
-      const answers = blankScores();
-      dimensions.forEach((dimension) => {
-        answers[dimension.key].scores = dimension.questions.map((_, index) => Number(document.querySelector(`[name="${dimension.key}_${index}"]`).value));
-        answers[dimension.key].note = document.getElementById(`${dimension.key}_note`).value.trim();
-      });
+      syncCurrentAssessmentStep();
+      const answers = cloneAnswers(assessmentDraft.answers || blankScores());
 
       if (isSharedMode()) {
         await saveSharedAssessment(programId, answers);
