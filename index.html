@@ -717,6 +717,18 @@
         grid-template-columns: 1fr;
       }
 
+      main {
+        padding-inline: 0.85rem;
+      }
+
+      .grid {
+        gap: 0.85rem;
+      }
+
+      aside.stack {
+        gap: 0.75rem;
+      }
+
       .assessment-header {
         display: grid;
       }
@@ -729,8 +741,46 @@
     @media (max-width: 560px) {
       header { position: static; }
 
+      h1 {
+        font-size: 1rem;
+      }
+
+      .brand {
+        align-items: flex-start;
+      }
+
+      .mark {
+        width: 36px;
+        height: 36px;
+      }
+
+      .hero {
+        display: none;
+      }
+
+      .panel, .card {
+        border-radius: 7px;
+        box-shadow: 0 10px 28px rgba(47, 61, 54, 0.07);
+      }
+
+      .panel {
+        padding: 0.9rem;
+      }
+
+      .tabs {
+        position: sticky;
+        top: 0;
+        z-index: 6;
+      }
+
+      .tab {
+        flex: 1 0 auto;
+        padding: 0.68rem 0.72rem;
+      }
+
       .question {
         grid-template-columns: 1fr;
+        padding: 0.85rem 0;
       }
 
       .score-pill {
@@ -743,6 +793,14 @@
 
       .top-actions {
         justify-content: flex-start;
+      }
+
+      input[type="text"], input[type="email"], input[type="password"], textarea, select {
+        min-height: 46px;
+      }
+
+      button {
+        min-height: 46px;
       }
 
       .landing {
@@ -826,7 +884,15 @@
               <input id="organizationName" type="text" placeholder="e.g., Purpose Learning Network">
             </div>
             <div>
-              <label for="userRole">Role</label>
+              <label for="accessRole">Access level</label>
+              <select id="accessRole">
+                <option>Staff / evaluator</option>
+                <option>Project Director</option>
+                <option>Center Director</option>
+              </select>
+            </div>
+            <div>
+              <label for="userRole">Practitioner role</label>
               <select id="userRole">
                 <option>Program Director</option>
                 <option>Program Staff</option>
@@ -842,8 +908,8 @@
 
         <section class="panel">
           <h2>Programs in Network</h2>
-          <p class="subtitle" style="margin-bottom:0.85rem;">Select the program you want to evaluate. The assessment questions on the right always refer to this selected program.</p>
-          <div class="tight">
+          <p id="programAccessCopy" class="subtitle" style="margin-bottom:0.85rem;">Select the program you want to evaluate. The assessment questions on the right always refer to this selected program.</p>
+          <div id="programCreateArea" class="tight">
             <div>
               <label for="programName">Create program</label>
               <input id="programName" type="text" placeholder="e.g., Summer Bridge Project">
@@ -922,6 +988,7 @@
         name: "",
         email: "",
         role: "Program Director",
+        accessRole: "Staff / evaluator",
         organizationId: "",
         organizationName: ""
       },
@@ -968,6 +1035,10 @@
 
     function requiresSharedLogin() {
       return Boolean(db && !isSharedMode());
+    }
+
+    function canCreatePrograms() {
+      return ["Center Director", "Project Director"].includes(state.user.accessRole) || state.user.role === "Program Director";
     }
 
     function setAccessStatus(message, tone = "info") {
@@ -1053,9 +1124,11 @@
       document.getElementById("userName").value = state.user.name;
       document.getElementById("userEmail").value = state.user.email || "";
       document.getElementById("organizationName").value = state.user.organizationName || "";
+      document.getElementById("accessRole").value = state.user.accessRole || "Staff / evaluator";
       document.getElementById("userRole").value = state.user.role;
       renderRuntimeStatus();
       renderDataSourceCopy();
+      renderProgramAccess();
       renderPrograms();
       renderAssessment();
       renderResults();
@@ -1110,6 +1183,17 @@
       }
     }
 
+    function renderProgramAccess() {
+      const createArea = document.getElementById("programCreateArea");
+      const copy = document.getElementById("programAccessCopy");
+      if (!createArea || !copy) return;
+      const allowed = canCreatePrograms();
+      createArea.classList.toggle("hidden", !allowed);
+      copy.textContent = allowed
+        ? "Create or select a program. The assessment questions on the right always refer to the selected program."
+        : "Select a program created by your center or project director. The assessment questions on the right always refer to the selected program.";
+    }
+
     async function loadSharedProfileAndData() {
       if (!db || !currentSession) return;
       const { data: profile, error } = await db
@@ -1134,6 +1218,7 @@
         email: currentSession.user.email || state.user.email,
         name: profile.full_name,
         role: profile.default_role,
+        accessRole: profile.default_role === "Program Director" ? "Project Director" : state.user.accessRole,
         organizationId: profile.organization_id,
         organizationName: profile.organizations?.name || state.user.organizationName
       };
@@ -1806,6 +1891,7 @@
         name: document.getElementById("userName").value.trim(),
         email: document.getElementById("userEmail").value.trim(),
         role: document.getElementById("userRole").value,
+        accessRole: document.getElementById("accessRole").value,
         organizationName: document.getElementById("organizationName").value.trim()
       };
 
@@ -1879,6 +1965,10 @@
     document.getElementById("saveUser").addEventListener("click", handleAccess);
 
     document.getElementById("createProgram").addEventListener("click", async () => {
+      if (!canCreatePrograms()) {
+        setProgramStatus("Only center and project directors can create programs. Please select an existing program to rate.", "error");
+        return;
+      }
       const name = document.getElementById("programName").value.trim();
       if (!name) {
         setProgramStatus("Enter a program name before creating a shared program.", "error");
